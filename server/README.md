@@ -1,5 +1,9 @@
 # ZenClash signaling relay (optional)
 
+Vercel deployments use the repository's `api/signal.ts` HTTP polling function
+automatically; no WebSocket server is required there. This FastAPI relay is
+for self-hosted deployments or local networks that want a WebSocket transport.
+
 Code-free matchmaking for the **Live Rival** mode. The web app works without
 this server (manual invite/answer codes), so only run it when two players want
 automatic SDP exchange on the same network.

@@ -228,21 +228,35 @@ export class RivalPeer {
 }
 
 /**
- * Optional WebSocket signaling client for the FastAPI relay in server/.
- * Only used when the user enters a relay URL; the manual-code flow above
- * always works without it. Protocol: {room, kind, payload}.
+ * Signaling client. Vercel Functions cannot keep WebSockets alive, so the
+ * hosted default uses short HTTP polls. WebSocket URLs remain supported for
+ * a self-hosted relay.
  */
-export class SignalingClient {  private ws: WebSocket | null = null
+export class SignalingClient {
+  private ws: WebSocket | null = null
+  private pollTimer: number | null = null
+  private endpoint = ''
+  private room = ''
+  private peerId = ''
+  private http = false
   onSignal: (kind: string, payload: string) => void = () => {}
   onOpen: () => void = () => void {}
   onClose: () => void = () => void {}
 
   get ready(): boolean {
-    return !!this.ws && this.ws.readyState === WebSocket.OPEN
+    return this.http || (!!this.ws && this.ws.readyState === WebSocket.OPEN)
   }
 
   connect(url: string, room: string): void {
     this.disconnect()
+    this.room = room
+    this.peerId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
+    if (!url.startsWith('ws:') && !url.startsWith('wss:')) {
+      this.http = true
+      this.endpoint = url || '/api/signal'
+      void this.httpJoin()
+      return
+    }
     let wsUrl = url
     if (typeof window !== 'undefined' && wsUrl.startsWith('/')) {
       const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -273,16 +287,58 @@ export class SignalingClient {  private ws: WebSocket | null = null
   }
 
   send(room: string, kind: string, payload: string): void {
+    if (this.http) {
+      void fetch(this.endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ room, peer: this.peerId, kind, payload }),
+      }).catch(() => {})
+      return
+    }
     if (this.ready) this.ws!.send(JSON.stringify({ room, kind, payload }))
   }
 
   disconnect(): void {
+    if (this.pollTimer !== null) window.clearTimeout(this.pollTimer)
+    this.pollTimer = null
+    this.http = false
     try {
       this.ws?.close()
     } catch {
       /* noop */
     }
     this.ws = null
+  }
+
+  private async httpJoin(): Promise<void> {
+    try {
+      await fetch(this.endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ room: this.room, peer: this.peerId, kind: 'join', payload: '' }),
+      })
+      if (!this.http) return
+      this.onOpen()
+      void this.poll()
+    } catch {
+      if (this.http) this.onClose()
+    }
+  }
+
+  private async poll(): Promise<void> {
+    if (!this.http) return
+    try {
+      const query = new URLSearchParams({ room: this.room, peer: this.peerId })
+      const response = await fetch(`${this.endpoint}?${query.toString()}`, { cache: 'no-store' })
+      if (!response.ok) throw new Error(`Signaling request failed (${response.status})`)
+      const messages = (await response.json()) as Array<{ kind?: string; payload?: string }>
+      for (const message of messages) {
+        if (message.kind && message.kind !== 'join') this.onSignal(message.kind, message.payload ?? '')
+      }
+    } catch {
+      if (this.http) this.onClose()
+    }
+    if (this.http) this.pollTimer = window.setTimeout(() => void this.poll(), 700)
   }
 }
 

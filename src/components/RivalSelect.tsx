@@ -183,7 +183,7 @@ function LivePanel({
   }
 
   const startAutoMatch = async (role: 'host' | 'guest') => {
-    const targetRelay = relayUrl.trim() || '/signal'
+    const targetRelay = relayUrl.trim() || '/api/signal'
     setBusy(true)
     setConnectedRole(role)
     try {
