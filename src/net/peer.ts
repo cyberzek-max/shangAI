@@ -128,6 +128,10 @@ export class RivalPeer {
 
   private wireChannel(ch: RTCDataChannel): void {
     this.dc = ch
+    ch.onopen = () => this.setState('open')
+    ch.onclose = () => {
+      if (this.state === 'open') this.setState('closed')
+    }
     ch.onmessage = (ev) => {
       const lms = typeof ev.data === 'string' ? unpack(ev.data) : null
       if (lms) {
@@ -287,13 +291,14 @@ export class SignalingClient {
     }
   }
 
-  send(room: string, kind: string, payload: string): void {
+  async send(room: string, kind: string, payload: string): Promise<void> {
     if (this.http) {
-      void fetch(this.endpoint, {
+      const response = await fetch(this.endpoint, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ room, peer: this.peerId, kind, payload }),
-      }).catch(() => {})
+      })
+      if (!response.ok) throw new Error(await this.errorMessage(response))
       return
     }
     if (this.ready) this.ws!.send(JSON.stringify({ room, kind, payload }))

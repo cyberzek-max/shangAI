@@ -142,12 +142,14 @@ function LivePanel({
   room,
   onRoomChange,
   onStatus,
+  onNegotiated,
 }: {
   peerRef: React.MutableRefObject<RivalPeer | null>
   relayUrl: string
   room: string
   onRoomChange: (r: string) => void
   onStatus: (s: string) => void
+  onNegotiated: (ready: boolean) => void
 }) {
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -191,21 +193,24 @@ function LivePanel({
       sigRef.current = sig
       sig.onError = (message) => onStatus(message)
       const p = peer()
+      onNegotiated(false)
 
       if (role === 'host') {
         const code = await p.createInvite()
         sig.onSignal = (kind, payload) => {
-          if (kind === 'peer_joined' || kind === 'peers') {
-            sig.send(activeRoom, 'offer', code)
-            onStatus('⚡ Rival joined room! Syncing...')
-          } else if (kind === 'answer') {
+          if (kind === 'answer') {
             void p.acceptAnswer(payload).then(() => {
-              onStatus('🟢 Connected — Rival linked!')
+              onNegotiated(true)
+              onStatus('⚡ Answer received. Connecting to rival…')
+            }).catch((err: unknown) => {
+              onStatus(err instanceof Error ? err.message : 'Could not accept the rival answer.')
             })
           }
         }
         sig.onOpen = () => {
-          sig.send(activeRoom, 'offer', code)
+          void sig.send(activeRoom, 'offer', code).catch((err: unknown) => {
+            onStatus(err instanceof Error ? err.message : 'Could not send the arena offer.')
+          })
           onStatus(`📡 Hosting room [${activeRoom}] — Waiting for rival to enter…`)
         }
         sig.connect(targetRelay, activeRoom)
@@ -216,12 +221,14 @@ function LivePanel({
             hasAnswered = true
             void p
               .acceptInvite(payload)
-              .then((ans) => {
-                sig.send(activeRoom, 'answer', ans)
-                onStatus('⚡ Linking with host...')
+              .then(async (ans) => {
+                await sig.send(activeRoom, 'answer', ans)
+                onNegotiated(true)
+                onStatus('⚡ Answer sent. Connecting to host…')
               })
-              .catch(() => {
+              .catch((err: unknown) => {
                 hasAnswered = false
+                onStatus(err instanceof Error ? err.message : 'Could not answer the host offer.')
               })
           }
         }
@@ -384,6 +391,7 @@ export function RivalSelect() {
   const [showRecorder, setShowRecorder] = useState(false)
   const [peerMsg, setPeerMsg] = useState('')
   const [peerState, setPeerState] = useState('')
+  const [peerNegotiated, setPeerNegotiated] = useState(false)
   const peerRef = useRef<RivalPeer | null>(null)
   const committedRef = useRef(false)
 
@@ -414,13 +422,13 @@ export function RivalSelect() {
   const setRival = (rival: ClashRival) => setClash({ rival })
 
   const canStart =
-    clash.rival !== 'live' || peerRef.current?.connected || peerState === 'open'
+    clash.rival !== 'live' || peerNegotiated || !!peerRef.current?.connected
 
   const start = () => {
     if (clash.rival === 'live') {
       const p = peerRef.current
-      if (!p || !p.connected) {
-        setPeerMsg('Link the rival peer first (status must be open).')
+      if (!p || (!p.connected && !peerNegotiated)) {
+        setPeerMsg('Join or host a room, then wait for the rival offer and answer.')
         return
       }
       setLivePeer(p)
@@ -605,6 +613,7 @@ export function RivalSelect() {
             room={clash.room}
             onRoomChange={(r) => setClash({ room: r })}
             onStatus={setPeerMsg}
+            onNegotiated={setPeerNegotiated}
           />
           {(peerMsg || peerState) && (
             <div className="inline-flex items-center gap-2 rounded-lg bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-300">
