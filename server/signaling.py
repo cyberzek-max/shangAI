@@ -19,8 +19,6 @@ app = FastAPI(title="ZenClash signaling relay")
 rooms: dict[str, set[WebSocket]] = {}
 
 
-@app.get("/")
-@app.get("/api")
 @app.get("/api/health")
 @app.get("/health")
 async def health() -> dict[str, str]:
