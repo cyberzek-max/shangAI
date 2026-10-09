@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { CameraSetup } from './components/CameraSetup'
 import { ClashReport } from './components/ClashReport'
 import { ClashSession } from './components/ClashSession'
@@ -10,6 +11,20 @@ import { useAppStore } from './state/store'
 
 export default function App() {
   const screen = useAppStore((s) => s.screen)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const room = params.get('room')
+    const rival = params.get('rival')
+    if (room || rival === 'live') {
+      useAppStore.getState().setClash({
+        rival: 'live',
+        room: room || 'dojo-1',
+      })
+      useAppStore.getState().go('rival')
+    }
+  }, [])
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-base-950 font-sans text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
       {/* Apple-style ambient depth gradients (calm and subtle) */}

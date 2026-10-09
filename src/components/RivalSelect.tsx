@@ -128,53 +128,86 @@ function RecorderPanel({ onSaved }: { onSaved: () => void }) {
 
 /* ------------------------------ live panel ------------------------------ */
 
+const RANDOM_ROOMS = ['DOJO', 'TIGER', 'DRAGON', 'SHADOW', 'TITAN', 'CYBER', 'ZEN']
+
+function randomRoom(): string {
+  const tag = RANDOM_ROOMS[Math.floor(Math.random() * RANDOM_ROOMS.length)]
+  const num = Math.floor(10 + Math.random() * 90)
+  return `${tag}-${num}`
+}
+
 function LivePanel({
   peerRef,
   relayUrl,
   room,
+  onRoomChange,
   onStatus,
 }: {
   peerRef: React.MutableRefObject<RivalPeer | null>
   relayUrl: string
   room: string
+  onRoomChange: (r: string) => void
   onStatus: (s: string) => void
 }) {
-  const [tab, setTab] = useState<'host' | 'join'>('host')
+  const [busy, setBusy] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [connectedRole, setConnectedRole] = useState<'host' | 'guest' | null>(null)
+  const [showManual, setShowManual] = useState(false)
   const [invite, setInvite] = useState('')
   const [answer, setAnswer] = useState('')
-  const [busy, setBusy] = useState(false)
   const sigRef = useRef<SignalingClient | null>(null)
+
+  const activeRoom = room.trim() || 'DOJO-1'
 
   const peer = () => {
     if (!peerRef.current) {
       const p = new RivalPeer()
-      p.onState = (s) => onStatus(`Peer: ${s}`)
+      p.onState = (s) => {
+        onStatus(`Peer: ${s}`)
+        if (s === 'open') {
+          onStatus('🟢 Rival Connected! Click Start Clash to begin.')
+        }
+      }
       peerRef.current = p
     }
     return peerRef.current
   }
 
-  const useRelay = async (role: 'host' | 'guest') => {
+  const copyMatchLink = () => {
+    if (typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+    url.search = `?room=${encodeURIComponent(activeRoom)}&rival=live`
+    void navigator.clipboard.writeText(url.toString())
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2500)
+  }
+
+  const startAutoMatch = async (role: 'host' | 'guest') => {
     const targetRelay = relayUrl.trim() || '/signal'
     setBusy(true)
+    setConnectedRole(role)
     try {
       const sig = new SignalingClient()
       sigRef.current = sig
       const p = peer()
+
       if (role === 'host') {
         const code = await p.createInvite()
         sig.onSignal = (kind, payload) => {
           if (kind === 'peer_joined' || kind === 'peers') {
-            sig.send(room, 'offer', code)
+            sig.send(activeRoom, 'offer', code)
+            onStatus('⚡ Rival joined room! Syncing...')
           } else if (kind === 'answer') {
-            void p.acceptAnswer(payload).then(() => onStatus('Peer: open — rival linked'))
+            void p.acceptAnswer(payload).then(() => {
+              onStatus('🟢 Connected — Rival linked!')
+            })
           }
         }
         sig.onOpen = () => {
-          sig.send(room, 'offer', code)
-          onStatus('Invite sent via relay — waiting for guest…')
+          sig.send(activeRoom, 'offer', code)
+          onStatus(`📡 Hosting room [${activeRoom}] — Waiting for rival to enter…`)
         }
-        sig.connect(targetRelay, room)
+        sig.connect(targetRelay, activeRoom)
       } else {
         let hasAnswered = false
         sig.onSignal = (kind, payload) => {
@@ -183,122 +216,157 @@ function LivePanel({
             void p
               .acceptInvite(payload)
               .then((ans) => {
-                sig.send(room, 'answer', ans)
-                onStatus('Answer sent — connecting…')
+                sig.send(activeRoom, 'answer', ans)
+                onStatus('⚡ Linking with host...')
               })
               .catch(() => {
                 hasAnswered = false
               })
           }
         }
-        sig.onOpen = () => onStatus('Relay open — waiting for host invite…')
-        sig.connect(targetRelay, room)
+        sig.onOpen = () => onStatus(`⚡ Joined room [${activeRoom}] — Waiting for host offer…`)
+        sig.connect(targetRelay, activeRoom)
       }
     } catch (err) {
-      onStatus(err instanceof Error ? err.message : 'Relay failed')
+      onStatus(err instanceof Error ? err.message : 'Connection failed')
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <div className="rounded-xl border border-base-600 bg-base-800 p-3">
-      <div className="flex gap-2">
-        {(['host', 'join'] as const).map((t) => (
+    <div className="space-y-4">
+      {/* 1-Click Match Bar */}
+      <div className="rounded-2xl border border-white/10 bg-black/40 p-4 backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-cyan-400">
+              Match Room
+            </div>
+            <div className="mt-1 flex items-center gap-2">
+              <input
+                value={room}
+                onChange={(e) => onRoomChange(e.target.value.toUpperCase())}
+                placeholder="DOJO-42"
+                className="w-36 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 font-mono text-sm font-bold tracking-wider text-white uppercase focus:border-cyan-400 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => onRoomChange(randomRoom())}
+                title="Generate Random Room Code"
+                className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-slate-300 hover:bg-white/10"
+              >
+                🎲 Random
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Copy Link */}
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`rounded-lg border px-3 py-1.5 font-display text-xs font-bold uppercase ${
-              tab === t ? 'border-cyan-400 text-cyan-300' : 'border-base-600 text-slate-400'
+            type="button"
+            onClick={copyMatchLink}
+            className="flex items-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3.5 py-2 text-xs font-semibold text-cyan-300 transition-all hover:bg-cyan-500/20 active:scale-95"
+          >
+            <span>{copied ? '✓ Link Copied!' : '🔗 Copy 1-Click Invite Link'}</span>
+          </button>
+        </div>
+
+        {/* 1-Click Matchmaking Actions */}
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void startAutoMatch('host')}
+            className={`flex flex-col items-center justify-center rounded-xl p-3 text-center transition-all ${
+              connectedRole === 'host'
+                ? 'border border-cyan-400 bg-cyan-500/20 text-cyan-200'
+                : 'border border-white/10 bg-white/5 text-slate-200 hover:border-cyan-400/50 hover:bg-white/10'
             }`}
           >
-            {t === 'host' ? 'Host (invite)' : 'Join (guest)'}
+            <span className="text-sm font-bold">👑 Host Match</span>
+            <span className="mt-0.5 text-[11px] text-slate-400">
+              Create arena & wait for your friend
+            </span>
           </button>
-        ))}
-        <span className="ml-auto font-mono text-[11px] text-slate-500">WebRTC · server-free</span>
+
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void startAutoMatch('guest')}
+            className={`flex flex-col items-center justify-center rounded-xl p-3 text-center transition-all ${
+              connectedRole === 'guest'
+                ? 'border border-emerald-400 bg-emerald-500/20 text-emerald-200'
+                : 'border border-white/10 bg-white/5 text-slate-200 hover:border-emerald-400/50 hover:bg-white/10'
+            }`}
+          >
+            <span className="text-sm font-bold">⚔️ Join Match</span>
+            <span className="mt-0.5 text-[11px] text-slate-400">
+              Enter room code & connect instantly
+            </span>
+          </button>
+        </div>
       </div>
 
-      {tab === 'host' ? (
-        <div className="mt-2 space-y-2">
+      {/* Advanced Manual SDP Codes Fallback (Collapsible) */}
+      <div className="text-center">
+        <button
+          type="button"
+          onClick={() => setShowManual(!showManual)}
+          className="text-[11px] text-slate-500 hover:text-slate-300 transition-colors"
+        >
+          {showManual ? '▴ Hide Offline Manual Codes' : '▾ Need Offline / Manual Code Exchange?'}
+        </button>
+      </div>
+
+      {showManual && (
+        <div className="rounded-xl border border-white/10 bg-base-900/90 p-3 space-y-3">
+          <div className="text-xs text-slate-400">
+            Manual offline code exchange (no server required):
+          </div>
           <div className="flex gap-2">
             <button
-              disabled={busy}
               onClick={() => {
                 setBusy(true)
                 peer()
                   .createInvite()
-                  .then((code) => {
-                    setInvite(code)
-                    onStatus('Invite ready — send it to your rival.')
+                  .then((c) => {
+                    setInvite(c)
+                    onStatus('Invite ready — copy it to your friend')
                   })
-                  .catch((e) => onStatus(e instanceof Error ? e.message : 'Failed'))
                   .finally(() => setBusy(false))
               }}
-              className="rounded-lg bg-cyan-500 px-3 py-1.5 font-display text-xs font-bold uppercase text-base-950 disabled:opacity-40"
+              className="rounded-lg bg-cyan-500 px-3 py-1 text-xs font-bold text-base-950"
             >
-              1. Create invite
+              1. Create Invite
             </button>
-            <button
-              disabled={busy || !relayUrl}
-              onClick={() => void useRelay('host')}
-              className="rounded-lg border border-base-600 px-3 py-1.5 font-display text-xs font-bold uppercase text-slate-300 disabled:opacity-40"
-            >
-              Send via relay
-            </button>
+            <input
+              value={invite}
+              readOnly
+              placeholder="Invite code appears here"
+              className="flex-1 rounded-lg border border-white/10 bg-black/50 px-2 py-1 font-mono text-[10px] text-white"
+            />
           </div>
-          <textarea value={invite} readOnly rows={2} placeholder="Invite code appears here — copy it to your rival"
-            className="w-full rounded-lg border border-base-600 bg-base-900 p-2 font-mono text-[11px] text-slate-200" />
           <div className="flex gap-2">
-            <input value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="2. Paste rival's answer code"
-              className="min-w-0 flex-1 rounded-lg border border-base-600 bg-base-900 px-2 py-1.5 font-mono text-[11px] text-white" />
+            <input
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              placeholder="Paste friend's answer code"
+              className="flex-1 rounded-lg border border-white/10 bg-black/50 px-2 py-1 font-mono text-[10px] text-white"
+            />
             <button
-              disabled={busy || !answer}
+              disabled={!answer}
               onClick={() => {
                 setBusy(true)
                 peer()
                   .acceptAnswer(answer)
-                  .then(() => onStatus('Connecting…'))
-                  .catch((e) => onStatus(e instanceof Error ? e.message : 'Bad code'))
+                  .then(() => onStatus('Connected'))
                   .finally(() => setBusy(false))
               }}
-              className="rounded-lg bg-emerald-500 px-3 py-1.5 font-display text-xs font-bold uppercase text-base-950 disabled:opacity-40"
+              className="rounded-lg bg-emerald-500 px-3 py-1 text-xs font-bold text-base-950 disabled:opacity-40"
             >
               Connect
             </button>
           </div>
-        </div>
-      ) : (
-        <div className="mt-2 space-y-2">
-          <div className="flex gap-2">
-            <input value={invite} onChange={(e) => setInvite(e.target.value)} placeholder="Paste host invite code"
-              className="min-w-0 flex-1 rounded-lg border border-base-600 bg-base-900 px-2 py-1.5 font-mono text-[11px] text-white" />
-            <button
-              disabled={busy || !invite}
-              onClick={() => {
-                setBusy(true)
-                peer()
-                  .acceptInvite(invite)
-                  .then((ans) => {
-                    setAnswer(ans)
-                    onStatus('Answer ready — send it back to the host.')
-                  })
-                  .catch((e) => onStatus(e instanceof Error ? e.message : 'Bad code'))
-                  .finally(() => setBusy(false))
-              }}
-              className="rounded-lg bg-cyan-500 px-3 py-1.5 font-display text-xs font-bold uppercase text-base-950 disabled:opacity-40"
-            >
-              Join
-            </button>
-            <button
-              disabled={busy || !relayUrl}
-              onClick={() => void useRelay('guest')}
-              className="rounded-lg border border-base-600 px-3 py-1.5 font-display text-xs font-bold uppercase text-slate-300 disabled:opacity-40"
-            >
-              Listen via relay
-            </button>
-          </div>
-          <textarea value={answer} readOnly rows={2} placeholder="Your answer code appears here"
-            className="w-full rounded-lg border border-base-600 bg-base-900 p-2 font-mono text-[11px] text-slate-200" />
         </div>
       )}
     </div>
@@ -530,25 +598,17 @@ export function RivalSelect() {
       {/* Live Rival WebRTC Panel */}
       {clash.rival === 'live' && (
         <div className="mt-4 glass-surface rounded-2xl p-4 shadow-glass-sm space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              value={clash.relayUrl}
-              onChange={(e) => setClash({ relayUrl: e.target.value })}
-              placeholder="Signaling Relay URL (optional, e.g. /signal)"
-              className="rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400"
-            />
-            <input
-              value={clash.room}
-              onChange={(e) => setClash({ room: e.target.value })}
-              placeholder="Room code (e.g. dojo-1)"
-              className="rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400"
-            />
-          </div>
-          <LivePanel peerRef={peerRef} relayUrl={clash.relayUrl} room={clash.room} onStatus={setPeerMsg} />
+          <LivePanel
+            peerRef={peerRef}
+            relayUrl={clash.relayUrl}
+            room={clash.room}
+            onRoomChange={(r) => setClash({ room: r })}
+            onStatus={setPeerMsg}
+          />
           {(peerMsg || peerState) && (
             <div className="inline-flex items-center gap-2 rounded-lg bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-300">
               <span>{peerMsg}</span>
-              {peerState === 'open' && <span className="font-bold">✓ Peer Connected</span>}
+              {peerState === 'open' && <span className="font-bold">✓ Ready for Clash</span>}
             </div>
           )}
         </div>
