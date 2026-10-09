@@ -233,7 +233,12 @@ export class SignalingClient {  private ws: WebSocket | null = null
 
   connect(url: string, room: string): void {
     this.disconnect()
-    const ws = new WebSocket(url)
+    let wsUrl = url
+    if (typeof window !== 'undefined' && wsUrl.startsWith('/')) {
+      const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      wsUrl = `${proto}//${window.location.host}${wsUrl}`
+    }
+    const ws = new WebSocket(wsUrl)
     this.ws = ws
     ws.onopen = () => {
       ws.send(JSON.stringify({ room, kind: 'join', payload: '' }))

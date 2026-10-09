@@ -526,7 +526,7 @@ export function RivalSelect() {
             <input
               value={clash.relayUrl}
               onChange={(e) => setClash({ relayUrl: e.target.value })}
-              placeholder="Signaling Relay URL (optional)"
+              placeholder="Signaling Relay URL (optional, e.g. /signal)"
               className="rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400"
             />
             <input
