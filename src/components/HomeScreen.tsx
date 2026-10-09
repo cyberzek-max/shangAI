@@ -141,30 +141,34 @@ export function HomeScreen() {
           </button>
         </div>
 
-        {/* Pose Clash Banner */}
+        {/* Live Multiplayer P2P Match Card */}
         <button
-          onClick={() => go('rival')}
-          className="apple-press glass-surface group relative flex items-center justify-between overflow-hidden rounded-2xl border-violet-500/25 p-4 text-left hover:border-violet-400/50"
+          onClick={() => {
+            useAppStore.getState().setClash({ rival: 'live' })
+            go('rival')
+          }}
+          className="apple-press glass-surface group relative flex items-center justify-between overflow-hidden rounded-2xl border-cyan-500/30 bg-gradient-to-r from-cyan-950/40 via-base-900/60 to-violet-950/40 p-4 text-left shadow-[0_4px_20px_rgba(56,217,230,0.15)] hover:border-cyan-400/60"
         >
           <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/20 to-pink-500/20 text-xl ring-1 ring-violet-500/30">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400/20 via-sky-500/20 to-violet-600/20 text-2xl ring-1 ring-cyan-400/30">
               ⚔️
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-white">Pose Clash</h3>
-                <span className="rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-semibold text-violet-300 ring-1 ring-inset ring-violet-400/30">
-                  Yoga & Boxing
+                <h3 className="text-base font-bold text-white">Live Multiplayer Arena</h3>
+                <span className="rounded-full bg-cyan-400/20 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-cyan-300 ring-1 ring-inset ring-cyan-400/40">
+                  1-Click Match
                 </span>
               </div>
-              <p className="mt-0.5 text-xs text-slate-400">
-                Match joint angles side-by-side with Ghost & WebRTC rivals
+              <p className="mt-0.5 text-xs text-slate-300">
+                Fight a real friend live over WebRTC · Copy 1-Click invite link
               </p>
             </div>
           </div>
-          <span className="text-xs font-semibold text-violet-300 group-hover:translate-x-0.5 transition-transform">
-            Open →
-          </span>
+          <div className="flex items-center gap-1.5 rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 py-1.5 text-xs font-bold text-cyan-300 group-hover:bg-cyan-500/20 transition-all">
+            <span>Enter Arena</span>
+            <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+          </div>
         </button>
 
         {/* Level Capsule Card */}
