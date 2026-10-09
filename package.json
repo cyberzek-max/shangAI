@@ -6,7 +6,7 @@
   "description": "AthleteMind - Bio-Bounty Hunter: webcam pose-controlled rehab game",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && rm -rf server/dist && cp -r dist server/dist",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test:smoke": "esbuild smoke/smoke.ts --bundle --platform=node --format=cjs --outfile=/tmp/athletemind-smoke.cjs --log-level=error && node /tmp/athletemind-smoke.cjs",
