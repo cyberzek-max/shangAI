@@ -228,9 +228,8 @@ export class RivalPeer {
 }
 
 /**
- * Signaling client. Vercel Functions cannot keep WebSockets alive, so the
- * hosted default uses short HTTP polls. WebSocket URLs remain supported for
- * a self-hosted relay.
+ * The hosted default uses short HTTP polls against the shared signaling
+ * store. WebSocket URLs remain supported for a self-hosted relay.
  */
 export class SignalingClient {
   private ws: WebSocket | null = null
@@ -239,9 +238,11 @@ export class SignalingClient {
   private room = ''
   private peerId = ''
   private http = false
+  private lastHttpError = ''
   onSignal: (kind: string, payload: string) => void = () => {}
   onOpen: () => void = () => void {}
   onClose: () => void = () => void {}
+  onError: (message: string) => void = () => void {}
 
   get ready(): boolean {
     return this.http || (!!this.ws && this.ws.readyState === WebSocket.OPEN)
@@ -312,16 +313,18 @@ export class SignalingClient {
 
   private async httpJoin(): Promise<void> {
     try {
-      await fetch(this.endpoint, {
+      const response = await fetch(this.endpoint, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ room: this.room, peer: this.peerId, kind: 'join', payload: '' }),
       })
+      if (!response.ok) throw new Error(await this.errorMessage(response))
       if (!this.http) return
+      this.lastHttpError = ''
       this.onOpen()
       void this.poll()
-    } catch {
-      if (this.http) this.onClose()
+    } catch (error) {
+      if (this.http) this.onError(error instanceof Error ? error.message : 'Could not join the arena room.')
     }
   }
 
@@ -330,15 +333,30 @@ export class SignalingClient {
     try {
       const query = new URLSearchParams({ room: this.room, peer: this.peerId })
       const response = await fetch(`${this.endpoint}?${query.toString()}`, { cache: 'no-store' })
-      if (!response.ok) throw new Error(`Signaling request failed (${response.status})`)
+      if (!response.ok) throw new Error(await this.errorMessage(response))
       const messages = (await response.json()) as Array<{ kind?: string; payload?: string }>
+      this.lastHttpError = ''
       for (const message of messages) {
         if (message.kind && message.kind !== 'join') this.onSignal(message.kind, message.payload ?? '')
       }
-    } catch {
-      if (this.http) this.onClose()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Arena signaling disconnected.'
+      if (this.http && message !== this.lastHttpError) {
+        this.lastHttpError = message
+        this.onError(message)
+      }
     }
     if (this.http) this.pollTimer = window.setTimeout(() => void this.poll(), 700)
+  }
+
+  private async errorMessage(response: Response): Promise<string> {
+    try {
+      const body = (await response.json()) as { error?: string }
+      if (body.error) return body.error
+    } catch {
+      // Fall back to the HTTP status for a non-JSON response.
+    }
+    return `Arena signaling request failed (${response.status}).`
   }
 }
 

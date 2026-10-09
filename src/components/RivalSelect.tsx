@@ -189,6 +189,7 @@ function LivePanel({
     try {
       const sig = new SignalingClient()
       sigRef.current = sig
+      sig.onError = (message) => onStatus(message)
       const p = peer()
 
       if (role === 'host') {
