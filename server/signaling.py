@@ -17,6 +17,7 @@ app = FastAPI(title="ZenClash signaling relay")
 
 # room -> set of connected sockets. Small demo scale; no persistence.
 rooms: dict[str, set[WebSocket]] = {}
+room_offers: dict[str, str] = {}
 
 
 @app.get("/api/health")
@@ -42,7 +43,26 @@ async def signal(ws: WebSocket) -> None:
             if kind == "join":
                 # Tell the newcomer how many peers are waiting.
                 await ws.send_json({"room": room, "kind": "peers", "payload": str(len(peers) - 1)})
+                # If an active offer was cached for this room, send it to the newcomer immediately
+                if room in room_offers and room_offers[room]:
+                    await ws.send_json({"room": room, "kind": "offer", "payload": room_offers[room]})
+                # Notify existing peers that a new peer joined
+                stale: list[WebSocket] = []
+                for peer in peers:
+                    if peer is not ws:
+                        try:
+                            await peer.send_json({"room": room, "kind": "peer_joined", "payload": ""})
+                        except Exception:
+                            stale.append(peer)
+                for dead in stale:
+                    peers.discard(dead)
                 continue
+
+            if kind == "offer":
+                room_offers[room] = payload
+            elif kind == "answer":
+                room_offers.pop(room, None)
+
             # Relay SDP codes to everyone else in the room.
             stale: list[WebSocket] = []
             for peer in peers:
@@ -61,6 +81,7 @@ async def signal(ws: WebSocket) -> None:
             rooms[room].discard(ws)
             if not rooms[room]:
                 del rooms[room]
+                room_offers.pop(room, None)
 
 
 # ---------------------------------------------------------------------------

@@ -178,9 +178,19 @@ export class RivalPeer {
 
   /** Host step 3: paste the guest's answer to complete the handshake. */
   async acceptAnswer(code: string): Promise<void> {
-    if (!this.pc) throw new Error('Create an invite first')
-    await this.pc.setRemoteDescription(new RTCSessionDescription(decodeSDP(code)))
-    this.setState('connecting')
+    if (!this.pc) return
+    const pc = this.pc
+    // Guard against duplicate answer delivery or already-established connection
+    if (pc.signalingState !== 'have-local-offer') {
+      return
+    }
+    try {
+      await pc.setRemoteDescription(new RTCSessionDescription(decodeSDP(code)))
+      this.setState('connecting')
+    } catch (err) {
+      if ((pc.signalingState as RTCSignalingState) === 'stable') return
+      throw err
+    }
   }
 
   /** Stream our landmarks (~20Hz, compact). Safe to call every frame. */

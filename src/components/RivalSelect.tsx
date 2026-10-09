@@ -155,10 +155,7 @@ function LivePanel({
   }
 
   const useRelay = async (role: 'host' | 'guest') => {
-    if (!relayUrl) {
-      onStatus('Enter a relay URL first (or use manual codes).')
-      return
-    }
+    const targetRelay = relayUrl.trim() || '/signal'
     setBusy(true)
     try {
       const sig = new SignalingClient()
@@ -167,24 +164,35 @@ function LivePanel({
       if (role === 'host') {
         const code = await p.createInvite()
         sig.onSignal = (kind, payload) => {
-          if (kind === 'answer') void p.acceptAnswer(payload).then(() => onStatus('Peer: open — rival linked'))
+          if (kind === 'peer_joined' || kind === 'peers') {
+            sig.send(room, 'offer', code)
+          } else if (kind === 'answer') {
+            void p.acceptAnswer(payload).then(() => onStatus('Peer: open — rival linked'))
+          }
         }
         sig.onOpen = () => {
           sig.send(room, 'offer', code)
           onStatus('Invite sent via relay — waiting for guest…')
         }
-        sig.connect(relayUrl, room)
+        sig.connect(targetRelay, room)
       } else {
+        let hasAnswered = false
         sig.onSignal = (kind, payload) => {
-          if (kind === 'offer') {
-            void p.acceptInvite(payload).then((ans) => {
-              sig.send(room, 'answer', ans)
-              onStatus('Answer sent — connecting…')
-            })
+          if (kind === 'offer' && !hasAnswered) {
+            hasAnswered = true
+            void p
+              .acceptInvite(payload)
+              .then((ans) => {
+                sig.send(room, 'answer', ans)
+                onStatus('Answer sent — connecting…')
+              })
+              .catch(() => {
+                hasAnswered = false
+              })
           }
         }
         sig.onOpen = () => onStatus('Relay open — waiting for host invite…')
-        sig.connect(relayUrl, room)
+        sig.connect(targetRelay, room)
       }
     } catch (err) {
       onStatus(err instanceof Error ? err.message : 'Relay failed')
