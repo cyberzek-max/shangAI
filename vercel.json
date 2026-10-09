@@ -15,7 +15,8 @@
     },
     "server": {
       "root": "server",
-      "framework": "fastapi"
+      "framework": "fastapi",
+      "entrypoint": "signaling:app"
     }
   },
   "rewrites": [
