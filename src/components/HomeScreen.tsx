@@ -53,45 +53,46 @@ export function HomeScreen() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-4xl flex-col items-center px-4 py-8 sm:px-6 sm:py-12">
+    <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col items-center px-4 py-8 sm:px-6 sm:py-12">
       {/* Brand Header */}
-      <div className="flex flex-col items-center text-center">
-        <div className="group relative flex h-20 w-20 items-center justify-center rounded-[26px] bg-gradient-to-br from-cyan-400 via-sky-500 to-violet-600 shadow-[0_12px_32px_-4px_rgba(56,217,230,0.4),inset_0_2px_0_0_rgba(255,255,255,0.35)] transition-transform duration-300 hover:scale-105">
-          <span className="text-3xl select-none">⚡</span>
-          <div className="absolute inset-0 rounded-[26px] ring-1 ring-inset ring-white/20" />
+      <div className="flex w-full items-center gap-5 border-b border-indigo-300/15 pb-7 sm:gap-7 sm:pb-9">
+        <div className="group relative flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-2xl border border-sky-200/40 bg-gradient-to-br from-blue-400 via-indigo-500 to-violet-700 shadow-[0_0_38px_rgba(76,110,255,0.4),inset_0_1px_0_rgba(255,255,255,0.45)] transition-transform duration-300 hover:scale-105 sm:h-24 sm:w-24 sm:rounded-[28px]">
+          <span className="select-none text-3xl drop-shadow-[0_0_12px_rgba(255,255,255,0.75)] sm:text-4xl">⚡</span>
+          <div className="absolute inset-1 rounded-[14px] border border-white/20 sm:rounded-[23px]" />
         </div>
 
-        <h1 className="mt-5 text-3xl font-extrabold tracking-[-0.03em] text-white sm:text-4xl lg:text-5xl">
-          ATHLETE<span className="bg-gradient-to-r from-cyan-400 to-sky-400 bg-clip-text text-transparent">MIND</span>
-        </h1>
-        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-violet-400/90">
-          Bio-Bounty Hunter · AI Rehab Combat
-        </p>
-
-        <p className="mt-3 max-w-lg text-center text-sm leading-relaxed text-slate-300/90">
-          Turn physical recovery into play. Your body is the controller — squat to charge energy,
-          strike with velocity, and align your posture to overcome bosses.
-        </p>
+        <div className="min-w-0 flex-1 text-left">
+          <p className="cyber-kicker mb-1 flex items-center gap-2"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sky-300 shadow-[0_0_10px_#60a5fa]" />Movement interface // online</p>
+          <h1 className="text-4xl font-black leading-none tracking-[-0.06em] text-white sm:text-6xl">
+            SHANG<span className="bg-gradient-to-r from-sky-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">AI</span>
+          </h1>
+          <p className="mt-2 max-w-xl text-xs leading-relaxed text-slate-300 sm:text-sm">
+            Your body is the controller. Move, adapt, and challenge the arena with real-time pose tracking.
+          </p>
+        </div>
+        <div className="hidden shrink-0 flex-col items-end gap-1 font-mono text-[10px] uppercase tracking-widest text-slate-500 md:flex">
+          <span>System 01</span><span className="text-indigo-300">Blue / Violet build</span>
+        </div>
       </div>
 
       {/* Main Action Grid */}
-      <div className="mt-8 grid w-full max-w-xl gap-3.5">
+      <div className="mt-7 grid w-full max-w-3xl gap-4 sm:mt-9">
         {/* Primary Start Game */}
         <button
           onClick={() => startReal(false)}
-          className="apple-press group relative flex items-center justify-between overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-500 via-sky-500 to-violet-600 p-5 text-left shadow-[0_10px_28px_-6px_rgba(14,165,233,0.45),inset_0_1px_0_0_rgba(255,255,255,0.35)] hover:brightness-105"
+          className="apple-press cyber-focus group relative flex min-h-36 items-center justify-between overflow-hidden rounded-[1.4rem] border border-sky-200/35 bg-gradient-to-r from-blue-700 via-indigo-600 to-violet-700 p-5 text-left shadow-[0_14px_42px_-12px_rgba(65,85,255,0.8),inset_0_1px_0_rgba(255,255,255,0.25)] hover:brightness-110 sm:p-7"
         >
           <div className="relative z-10">
             <div className="flex items-center gap-2">
               <span className="inline-flex h-6 items-center rounded-full bg-black/20 px-2.5 text-[11px] font-bold uppercase tracking-wider text-white">
-                Webcam Active
+                <span className="mr-1.5 h-1.5 animate-pulse rounded-full bg-emerald-300" /> Camera mode
               </span>
             </div>
             <h2 className="mt-1.5 text-xl font-bold tracking-[-0.02em] text-white sm:text-2xl">
-              Start Bounty Campaign
+              Start Campaign
             </h2>
             <p className="mt-0.5 text-xs text-white/80">
-              Full rehab battle with pose calibration & adaptive difficulty
+              Enter the arena · pose calibration · adaptive difficulty
             </p>
           </div>
           <div className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/20 backdrop-blur-md transition-transform duration-200 group-hover:translate-x-0.5">
@@ -104,7 +105,7 @@ export function HomeScreen() {
         <div className="grid gap-3 sm:grid-cols-2">
           <button
             onClick={() => startReal(true)}
-            className="apple-press glass-surface group flex flex-col justify-between rounded-2xl p-4 text-left hover:border-cyan-400/40"
+            className="apple-press cyber-focus glass-surface group flex min-h-36 flex-col justify-between rounded-2xl p-4 text-left hover:border-sky-300/60 sm:p-5"
           >
             <div className="flex items-center justify-between">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400">
@@ -124,7 +125,7 @@ export function HomeScreen() {
               setSimulated(true)
               go('select')
             }}
-            className="apple-press glass-surface group flex flex-col justify-between rounded-2xl p-4 text-left hover:border-violet-400/40"
+            className="apple-press cyber-focus glass-surface group flex min-h-36 flex-col justify-between rounded-2xl p-4 text-left hover:border-violet-300/60 sm:p-5"
           >
             <div className="flex items-center justify-between">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-400/10 text-violet-400">
@@ -147,7 +148,7 @@ export function HomeScreen() {
             useAppStore.getState().setClash({ rival: 'live' })
             go('rival')
           }}
-          className="apple-press glass-surface group relative flex items-center justify-between overflow-hidden rounded-2xl border-cyan-500/30 bg-gradient-to-r from-cyan-950/40 via-base-900/60 to-violet-950/40 p-4 text-left shadow-[0_4px_20px_rgba(56,217,230,0.15)] hover:border-cyan-400/60"
+          className="apple-press cyber-focus group relative flex items-center justify-between gap-3 overflow-hidden rounded-2xl border border-violet-300/25 bg-gradient-to-r from-blue-950/75 via-indigo-950/60 to-violet-950/75 p-4 text-left shadow-[0_0_32px_rgba(85,75,255,0.14)] transition-all hover:border-violet-300/55 hover:shadow-[0_0_38px_rgba(85,75,255,0.24)] sm:p-5"
         >
           <div className="flex items-center gap-3.5">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400/20 via-sky-500/20 to-violet-600/20 text-2xl ring-1 ring-cyan-400/30">
@@ -336,8 +337,8 @@ export function HomeScreen() {
       {/* Medical Disclaimer Footer */}
       <footer className="mt-12 max-w-md text-center">
         <p className="text-[11px] leading-relaxed text-slate-400/80">
-          Fitness & play — not medical diagnosis. AthleteMind does not provide medical-grade tracking.
-          Consult a physician or physical therapist for guided injury rehabilitation.
+          ShangAI is for general movement practice and entertainment, not medical advice,
+          diagnosis, or treatment. Choose movements that feel safe for you.
         </p>
       </footer>
     </div>

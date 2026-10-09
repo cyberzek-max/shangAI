@@ -5,10 +5,10 @@ import {
 } from '@mediapipe/tasks-vision'
 import type { PoseLandmarks } from '../types'
 
-const WASM_ROOT =
-  'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm'
-const MODEL_URL =
-  'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task'
+// Keep inference assets same-origin: deployments remain reliable when third-party
+// CDNs are blocked, and camera frames stay entirely in the browser.
+const WASM_ROOT = '/wasm'
+const MODEL_URL = '/models/pose_landmarker_lite.task'
 
 export type PoseStatus = 'idle' | 'loading' | 'ready' | 'running' | 'error'
 

@@ -41,7 +41,7 @@ function unpack(raw: string): PoseLandmarks | null {
 
 /**
  * Interpolated remote skeleton. Keeps the last two received frames and renders
- * ~80ms behind real time so motion stays smooth (sub-100ms glass-to-glass).
+ * ~40ms behind real time so motion stays smooth without excess latency.
  */
 export class RemoteGhost {
   private a: { at: number; lms: PoseLandmarks } | null = null

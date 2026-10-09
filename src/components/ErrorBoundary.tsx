@@ -20,7 +20,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error in AthleteMind UI:', error, errorInfo)
+    console.error('Uncaught error in ShangAI UI:', error, errorInfo)
   }
 
   private handleReset = () => {

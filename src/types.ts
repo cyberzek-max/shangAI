@@ -1,4 +1,4 @@
-// Shared types for AthleteMind.
+// Shared types for ShangAI.
 // Pose landmarks follow the MediaPipe Pose (BlazePose) 33-point topology.
 // Coordinates are normalized to [0,1] (x right, y down) with a relative z.
 

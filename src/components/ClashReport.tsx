@@ -86,15 +86,15 @@ export function ClashReport() {
         )}
       </div>
 
-      {/* AI Coach Summary Card */}
+      {/* Optional external coach prompt */}
       <div className="mt-4 w-full glass-surface rounded-2xl p-5 shadow-glass-sm border-violet-500/30">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-sm font-bold text-violet-200">
-              AI Physical Therapy Debrief
+              Optional Coach Prompt
             </h3>
             <p className="mt-0.5 text-xs text-slate-400">
-              Copy formatted telemetry for Claude / ChatGPT clinical coach breakdown.
+              Copy this session summary to an AI assistant for general, non-medical feedback.
             </p>
           </div>
         </div>

@@ -32,9 +32,9 @@ export default function App() {
         className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
         aria-hidden="true"
       >
-        <div className="absolute -top-[20%] left-1/2 h-[550px] w-[700px] -translate-x-1/2 rounded-full bg-gradient-to-b from-cyan-500/10 via-violet-600/10 to-transparent blur-[120px]" />
-        <div className="absolute top-[45%] -left-[10%] h-[400px] w-[500px] rounded-full bg-violet-600/8 blur-[140px]" />
-        <div className="absolute bottom-[10%] -right-[10%] h-[450px] w-[550px] rounded-full bg-cyan-500/8 blur-[140px]" />
+        <div className="absolute -top-[20%] left-1/2 h-[620px] w-[800px] -translate-x-1/2 rounded-full bg-gradient-to-br from-blue-500/20 via-indigo-600/15 to-violet-600/10 blur-[130px]" />
+        <div className="absolute top-[38%] -left-[12%] h-[480px] w-[540px] rounded-full bg-violet-600/12 blur-[145px]" />
+        <div className="absolute bottom-[5%] -right-[10%] h-[460px] w-[550px] rounded-full bg-sky-500/10 blur-[145px]" />
       </div>
 
       <main className="relative z-10 animate-fadeIn">

@@ -1,13 +1,17 @@
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useReducer, useRef, useState } from 'react'
 import { sound } from '../audio/sound'
 import { SessionRuntime } from '../game/runtime'
 import type { GameEngine } from '../game/engine'
 import { drawSkeleton } from './SkeletonOverlay'
-import { ArenaScene, type FramePose } from '../three/ArenaScene'
+import type { FramePose } from '../three/ArenaScene'
 import { applySession } from '../state/storage'
 import { useAppStore } from '../state/store'
 import { useShallow } from 'zustand/react/shallow'
 import type { SessionStats } from '../types'
+
+const ArenaScene = lazy(() =>
+  import('../three/ArenaScene').then((module) => ({ default: module.ArenaScene })),
+)
 
 function fmtTime(ms: number): string {
   const s = Math.floor(ms / 1000)
@@ -171,7 +175,18 @@ export function Gameplay() {
   return (
     <div className="relative h-screen w-full overflow-hidden bg-base-950 font-sans select-none">
       {engineRef.current ? (
-        <ArenaScene engine={engineRef.current} poseRef={poseApiRef} />
+        <Suspense
+          fallback={
+            <div className="flex h-full items-center justify-center text-slate-400">
+              <div className="glass-pill flex items-center gap-3 rounded-2xl px-6 py-3">
+                <span className="animate-spin text-cyan-400">⚡</span>
+                <span className="text-sm font-medium">Loading 3D Arena…</span>
+              </div>
+            </div>
+          }
+        >
+          <ArenaScene engine={engineRef.current} poseRef={poseApiRef} />
+        </Suspense>
       ) : (
         <div className="flex h-full items-center justify-center text-slate-400">
           <div className="glass-pill flex items-center gap-3 rounded-2xl px-6 py-3">

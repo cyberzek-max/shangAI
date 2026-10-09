@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "AthleteMind - Bio-Bounty Hunter: webcam pose-controlled rehab game",
+  "description": "ShangAI - camera-powered movement game with on-device pose tracking",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build && rm -rf server/dist && cp -r dist server/dist",
