@@ -61,3 +61,30 @@ async def signal(ws: WebSocket) -> None:
             rooms[room].discard(ws)
             if not rooms[room]:
                 del rooms[room]
+
+
+# ---------------------------------------------------------------------------
+# Static SPA Serving (Fallback if requests reach FastAPI directly)
+# ---------------------------------------------------------------------------
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from pathlib import Path
+
+_candidates = [
+    Path(__file__).resolve().parent / "dist",
+    Path(__file__).resolve().parent.parent / "dist",
+]
+_dist = next((p for p in _candidates if p.exists() and (p / "index.html").exists()), None)
+
+if _dist:
+    _assets = _dist / "assets"
+    if _assets.exists():
+        app.mount("/assets", StaticFiles(directory=str(_assets)), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        target = _dist / full_path
+        if full_path and target.exists() and target.is_file():
+            return FileResponse(target)
+        return FileResponse(_dist / "index.html")
+
