@@ -64,7 +64,8 @@ export class RemoteGhost {
   }
 
   sample(nowMs: number): PoseLandmarks | null {
-    const renderAt = nowMs - 80
+    // Keep only a short interpolation buffer so remote movement feels responsive.
+    const renderAt = nowMs - 40
     if (!this.b) return null
     if (!this.a || this.a.at >= renderAt || this.b.at <= this.a.at) return this.b.lms
     const f = Math.max(0, Math.min(1, (renderAt - this.a.at) / (this.b.at - this.a.at)))
@@ -197,10 +198,10 @@ export class RivalPeer {
     }
   }
 
-  /** Stream our landmarks (~20Hz, compact). Safe to call every frame. */
+  /** Stream our landmarks (~30Hz, compact). Safe to call every frame. */
   send(lms: PoseLandmarks | null, nowMs: number): void {
     if (!lms || !this.dc || this.dc.readyState !== 'open') return
-    if (nowMs - this.lastSend < 50) return
+    if (nowMs - this.lastSend < 33) return
     this.lastSend = nowMs
     try {
       this.dc.send(pack(lms))
