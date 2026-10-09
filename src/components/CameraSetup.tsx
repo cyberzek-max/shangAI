@@ -16,11 +16,10 @@ function torsoOf(lms: PoseLandmarks | null): number {
 }
 
 export function CameraSetup() {
-  const { go, settings, setSimulated } = useAppStore(
+  const { go, settings } = useAppStore(
     useShallow((s) => ({
       go: s.go,
       settings: s.settings,
-      setSimulated: s.setSimulated,
     })),
   )
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -205,15 +204,7 @@ export function CameraSetup() {
         <div className="mt-5 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-5 text-sm text-rose-200 shadow-glass">
           <p className="font-semibold text-rose-300">Camera Unavailable</p>
           <p className="mt-1 text-xs text-rose-200/90">{error}</p>
-          <button
-            onClick={() => {
-              setSimulated(true)
-              go('select')
-            }}
-            className="apple-press mt-3 rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-violet-500"
-          >
-            Launch Demo (Simulated) Instead →
-          </button>
+          <p className="mt-2 text-xs text-rose-200/80">Allow camera access and reload this step to continue.</p>
         </div>
       )}
 
@@ -236,10 +227,7 @@ export function CameraSetup() {
           </button>
 
           <button
-            onClick={() => {
-              setSimulated(false)
-              go('select')
-            }}
+            onClick={() => go('select')}
             disabled={status !== 'ready'}
             className="apple-press rounded-2xl bg-gradient-to-r from-cyan-500 via-sky-500 to-violet-600 px-6 py-3 text-xs font-bold text-white shadow-[0_8px_20px_-4px_rgba(14,165,233,0.4)] hover:brightness-105 disabled:opacity-40"
           >

@@ -136,7 +136,7 @@ assert(live.accuracy >= 80, `action match scores high (${live.accuracy})`)
   rec.syncSample(12)
   const rep = rec.build({
     mode: 'action', referenceName: 'Jab · Cross · Hook', rival: 'Ideal ghost',
-    startedAt: 0, endedAt: 60000, simulated: true,
+    startedAt: 0, endedAt: 60000,
   })
   console.log('report:', JSON.stringify(rep))
   assert(rep.avgAccuracy === 85 && rep.strikes.jab === 1 && rep.peakSyncMs === 12, 'report fields correct')

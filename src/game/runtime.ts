@@ -1,7 +1,6 @@
 import { MovementAnalyzer } from '../analysis/analyzer'
 import { GameEngine } from './engine'
 import { PoseService } from '../pose/poseService'
-import { PoseSimulator } from '../pose/simulator'
 import type {
   DifficultyId,
   ExerciseId,
@@ -15,7 +14,6 @@ const HUD_INTERVAL_MS = 90
 
 export interface RuntimeOptions {
   video: HTMLVideoElement | null
-  simulated: boolean
   focusExercise: ExerciseId
   difficulty: DifficultyId
   maxIntensity: Settings['maxIntensity']
@@ -28,14 +26,12 @@ export interface RuntimeOptions {
 }
 
 /**
- * Owns the per-session loop: pose source (camera or simulator) ->
- * MovementAnalyzer -> GameEngine -> HUD snapshots -> session stats.
+ * Owns the camera pose loop -> MovementAnalyzer -> GameEngine -> HUD snapshots.
  */
 export class SessionRuntime {
   private engine: GameEngine
   private analyzer: MovementAnalyzer
   private service = new PoseService()
-  private simulator = new PoseSimulator()
   private opts: RuntimeOptions
 
   private raf = 0
@@ -60,7 +56,6 @@ export class SessionRuntime {
         difficulty: opts.difficulty,
         maxIntensity: opts.maxIntensity,
         enemyName: opts.enemyName,
-        simulated: opts.simulated,
         passive: opts.passive,
       },
       performance.now(),
@@ -74,7 +69,6 @@ export class SessionRuntime {
 
   setFocusExercise(ex: ExerciseId): void {
     this.analyzer.setFocusExercise(ex)
-    if (this.opts.simulated) this.simulator.setExercise(ex)
   }
 
   pause(): void {
@@ -86,36 +80,29 @@ export class SessionRuntime {
   }
 
   async start(): Promise<void> {
-    const { video, simulated } = this.opts
-    if (!simulated) {
-      if (!video) throw new Error('No video element for camera mode')
-      if (!navigator?.mediaDevices?.getUserMedia) {
-        const msg = 'Webcam requires HTTPS or localhost. Please access via HTTPS or use Demo (Simulated) mode.'
-        this.opts.onCameraError?.(msg)
-        throw new Error(msg)
-      }
-      try {
-        this.stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 640 },
-            height: { ideal: 480 },
-            facingMode: 'user',
-          },
-          audio: false,
-        })
-        video.srcObject = this.stream
-        await video.play()
-        await this.service.init()
-      } catch (err) {
-        const msg =
-          err instanceof Error
-            ? err.message
-            : 'Camera unavailable. Use demo mode instead.'
-        this.opts.onCameraError?.(msg)
-        throw new Error(msg)
-      }
-    } else {
-      this.simulator.setExercise(this.focusExercise())
+    const { video } = this.opts
+    if (!video) throw new Error('No video element for camera mode')
+    if (!navigator?.mediaDevices?.getUserMedia) {
+      const msg = 'Camera access requires HTTPS or localhost.'
+      this.opts.onCameraError?.(msg)
+      throw new Error(msg)
+    }
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: 'user',
+        },
+        audio: false,
+      })
+      video.srcObject = this.stream
+      await video.play()
+      await this.service.init()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Camera unavailable.'
+      this.opts.onCameraError?.(msg)
+      throw new Error(msg)
     }
     this.startedAt = performance.now()
     this.last = 0
@@ -124,23 +111,13 @@ export class SessionRuntime {
     this.raf = requestAnimationFrame(this.step)
   }
 
-  private focusExercise(): ExerciseId {
-    // The simulator shares exercise ids with ExerciseId.
-    return this.opts.focusExercise
-  }
-
   private step = (): void => {
     if (!this.running) return
     const now = performance.now()
     const dt = this.last > 0 ? Math.min(100, now - this.last) : 16
     this.last = now
 
-    let lms = null
-    if (this.opts.simulated) {
-      lms = this.simulator.step(now)
-    } else if (this.opts.video) {
-      lms = this.service.detect(this.opts.video, now)
-    }
+    const lms = this.opts.video ? this.service.detect(this.opts.video, now) : null
 
     const result = this.analyzer.update(lms, dt)
     this.engine.processPose(result, now)
@@ -238,7 +215,6 @@ export class SessionRuntime {
       difficulty: this.opts.difficulty,
       outcome,
       exerciseIds,
-      simulated: this.opts.simulated,
     }
     if (!silent) this.opts.onFinish(stats)
     return stats

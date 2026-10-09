@@ -6,12 +6,11 @@ import { useShallow } from 'zustand/react/shallow'
 import type { ExerciseId } from '../types'
 
 export function ExerciseSelection() {
-  const { go, settings, updateSettings, simulated, practice } = useAppStore(
+  const { go, settings, updateSettings, practice } = useAppStore(
     useShallow((s) => ({
       go: s.go,
       settings: s.settings,
       updateSettings: s.updateSettings,
-      simulated: s.simulated,
       practice: s.practice,
     })),
   )
@@ -30,7 +29,7 @@ export function ExerciseSelection() {
       {/* Navigation Header */}
       <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
         <button
-          onClick={() => go(simulated ? 'home' : 'setup')}
+          onClick={() => go('setup')}
           className="apple-press glass-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold text-slate-300 hover:text-white"
         >
           <span>←</span> Back
@@ -41,11 +40,6 @@ export function ExerciseSelection() {
           <span className="glass-pill rounded-full px-2.5 py-1 text-[11px] font-medium text-cyan-300">
             {settings.difficulty} difficulty
           </span>
-          {simulated && (
-            <span className="glass-pill rounded-full bg-violet-500/20 px-2.5 py-1 text-[11px] font-semibold text-violet-300 border-violet-400/30">
-              Simulated
-            </span>
-          )}
           {practice && (
             <span className="glass-pill rounded-full bg-emerald-500/20 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 border-emerald-400/30">
               Training Mode

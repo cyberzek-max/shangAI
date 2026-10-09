@@ -22,14 +22,12 @@ export interface EngineConfig {
   maxIntensity: Settings['maxIntensity']
   mapping?: ActionMapping
   enemyName?: string
-  simulated?: boolean
   /** Training mode: the enemy never damages the player. */
   passive?: boolean
 }
 
 /**
- * Authoritative, webcam-free game simulation. Feed it PoseAnalysisResults via
- * processPose() (from real pose or the simulator) and drive time with tick().
+ * Game rules and state. Feed it pose analysis results and drive time with tick().
  */
 export class GameEngine {
   state: GameState
@@ -97,7 +95,6 @@ export class GameEngine {
       lastAction: null,
       lastActionAt: 0,
       repExerciseCounts: {},
-      simulated: config.simulated ?? false,
       passive: config.passive ?? false,
     }
   }

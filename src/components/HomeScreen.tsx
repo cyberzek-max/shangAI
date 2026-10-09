@@ -24,13 +24,12 @@ function GlassPanel({ title, subtitle, children }: { title: string; subtitle?: s
 }
 
 export function HomeScreen() {
-  const { go, settings, updateSettings, progress, setSimulated, setPractice } = useAppStore(
+  const { go, settings, updateSettings, progress, setPractice } = useAppStore(
     useShallow((s) => ({
       go: s.go,
       settings: s.settings,
       updateSettings: s.updateSettings,
       progress: s.progress,
-      setSimulated: s.setSimulated,
       setPractice: s.setPractice,
     })),
   )
@@ -48,7 +47,6 @@ export function HomeScreen() {
 
   const startReal = (practice: boolean) => {
     setPractice(practice)
-    setSimulated(false)
     go('setup')
   }
 
@@ -62,16 +60,13 @@ export function HomeScreen() {
         </div>
 
         <div className="min-w-0 flex-1 text-left">
-          <p className="cyber-kicker mb-1 flex items-center gap-2"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sky-300 shadow-[0_0_10px_#60a5fa]" />Movement interface // online</p>
+          <p className="cyber-kicker mb-1">Camera-powered movement game</p>
           <h1 className="text-4xl font-black leading-none tracking-[-0.06em] text-white sm:text-6xl">
             SHANG<span className="bg-gradient-to-r from-sky-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">AI</span>
           </h1>
           <p className="mt-2 max-w-xl text-xs leading-relaxed text-slate-300 sm:text-sm">
             Your body is the controller. Move, adapt, and challenge the arena with real-time pose tracking.
           </p>
-        </div>
-        <div className="hidden shrink-0 flex-col items-end gap-1 font-mono text-[10px] uppercase tracking-widest text-slate-500 md:flex">
-          <span>System 01</span><span className="text-indigo-300">Blue / Violet build</span>
         </div>
       </div>
 
@@ -85,7 +80,7 @@ export function HomeScreen() {
           <div className="relative z-10">
             <div className="flex items-center gap-2">
               <span className="inline-flex h-6 items-center rounded-full bg-black/20 px-2.5 text-[11px] font-bold uppercase tracking-wider text-white">
-                <span className="mr-1.5 h-1.5 animate-pulse rounded-full bg-emerald-300" /> Camera mode
+                <span className="mr-1.5 h-1.5 rounded-full bg-amber-300" /> Camera required
               </span>
             </div>
             <h2 className="mt-1.5 text-xl font-bold tracking-[-0.02em] text-white sm:text-2xl">
@@ -102,43 +97,21 @@ export function HomeScreen() {
         </button>
 
         {/* Secondary Dual Column */}
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3">
           <button
             onClick={() => startReal(true)}
-            className="apple-press cyber-focus glass-surface group flex min-h-36 flex-col justify-between rounded-2xl p-4 text-left hover:border-sky-300/60 sm:p-5"
+            className="apple-press cyber-focus glass-surface group flex min-h-24 items-center justify-between rounded-2xl p-4 text-left hover:border-sky-300/60 sm:p-5"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400">
                 🎯
               </span>
-              <span className="text-xs text-slate-400 group-hover:text-cyan-400 transition-colors">Launch →</span>
+              <div>
+                <h3 className="text-sm font-semibold text-slate-100">Exercise Training</h3>
+                <p className="mt-0.5 text-xs text-slate-400">Rep practice without enemy attacks</p>
+              </div>
             </div>
-            <div className="mt-3">
-              <h3 className="text-sm font-semibold text-slate-100">Exercise Training</h3>
-              <p className="mt-0.5 text-xs text-slate-400">Rep practice without enemy attacks</p>
-            </div>
-          </button>
-
-          <button
-            onClick={() => {
-              setPractice(false)
-              setSimulated(true)
-              go('select')
-            }}
-            className="apple-press cyber-focus glass-surface group flex min-h-36 flex-col justify-between rounded-2xl p-4 text-left hover:border-violet-300/60 sm:p-5"
-          >
-            <div className="flex items-center justify-between">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-400/10 text-violet-400">
-                🖥
-              </span>
-              <span className="rounded-md bg-white/5 px-1.5 py-0.5 text-[10px] font-medium text-violet-300">
-                No Camera
-              </span>
-            </div>
-            <div className="mt-3">
-              <h3 className="text-sm font-semibold text-slate-100">Demo (Simulated)</h3>
-              <p className="mt-0.5 text-xs text-slate-400">Test combat with synthetic landmarks</p>
-            </div>
+            <span className="text-xs text-slate-400 transition-colors group-hover:text-cyan-300">Launch →</span>
           </button>
         </div>
 

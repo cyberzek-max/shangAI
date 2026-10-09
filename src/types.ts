@@ -177,7 +177,6 @@ export interface SessionStats {
   difficulty: DifficultyId
   outcome: 'victory' | 'gameover' | 'quit'
   exerciseIds: ExerciseId[]
-  simulated: boolean
 }
 
 export interface Settings {

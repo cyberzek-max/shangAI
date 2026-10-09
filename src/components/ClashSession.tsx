@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { computeAngles } from '../analysis/angles'
 import { poseConfidence } from '../pose/landmarks'
 import { PoseService } from '../pose/poseService'
-import { PoseSimulator } from '../pose/simulator'
 import { LandmarkSmoother } from '../clash/smoothing'
 import { scoreAction, scoreFlow } from '../clash/scoring'
 import { StrikeDetector } from '../clash/strikes'
@@ -65,7 +64,6 @@ export function ClashSession() {
     let raf = 0
     let stream: MediaStream | null = null
     const service = new PoseService()
-    const sim = new PoseSimulator()
     const smoother = new LandmarkSmoother(clash.mode === 'flow' ? 4 : 2)
     const detector = new StrikeDetector()
     const recorder = new ClashRecorder()
@@ -119,7 +117,6 @@ export function ClashSession() {
         rival: rivalName,
         startedAt: t0,
         endedAt,
-        simulated: clash.simUser,
       })
       setClashReport(report)
       go('clash-report')
@@ -127,27 +124,23 @@ export function ClashSession() {
 
     const boot = async () => {
       try {
-        if (!clash.simUser) {
-          const video = videoRef.current
-          if (!video) throw new Error('No video element')
-          if (!navigator?.mediaDevices?.getUserMedia) {
-            throw new Error(
-              'Webcam requires HTTPS or localhost. Please access via HTTPS or enable simulated mode.',
-            )
-          }
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
-            audio: false,
-          })
-          if (!alive) {
-            for (const t of stream.getTracks()) t.stop()
-            return
-          }
-          video.srcObject = stream
-          await video.play()
-          await service.init()
-          if (!alive) return
+        const video = videoRef.current
+        if (!video) throw new Error('No video element')
+        if (!navigator?.mediaDevices?.getUserMedia) {
+          throw new Error('Camera access requires HTTPS or localhost.')
         }
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+          audio: false,
+        })
+        if (!alive) {
+          for (const t of stream.getTracks()) t.stop()
+          return
+        }
+        video.srcObject = stream
+        await video.play()
+        await service.init()
+        if (!alive) return
       } catch (err) {
         if (!alive) return
         pushEvent(err instanceof Error ? err.message : 'Camera failed')
@@ -175,9 +168,9 @@ export function ClashSession() {
         const proc0 = performance.now()
 
         // --- user landmarks ---
-        let raw: PoseLandmarks | null
-        if (clash.simUser) raw = sim.step(now)
-        else raw = videoRef.current ? service.detect(videoRef.current, now) : null
+        const raw: PoseLandmarks | null = videoRef.current
+          ? service.detect(videoRef.current, now)
+          : null
         const lms = smoother.push(raw)
         const angles = computeAngles(lms)
         const conf = poseConfidence(lms)
@@ -442,9 +435,7 @@ export function ClashSession() {
         )}
       </div>
 
-      {!clash.simUser && (
-        <video ref={videoRef} playsInline muted className="hidden" style={{ transform: 'scaleX(-1)' }} />
-      )}
+      <video ref={videoRef} playsInline muted className="hidden" style={{ transform: 'scaleX(-1)' }} />
 
       {/* Realtime Event Feed */}
       <div className="mt-4 flex w-full max-w-5xl flex-col items-start gap-1.5">

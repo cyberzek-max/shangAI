@@ -14,8 +14,7 @@ export type PoseStatus = 'idle' | 'loading' | 'ready' | 'running' | 'error'
 
 /**
  * Thin wrapper around MediaPipe Tasks Vision PoseLandmarker.
- * Kept isolated from game logic so the game can be tested without a webcam
- * (see the simulator in ./simulator.ts).
+ * Kept isolated from game logic so tracking can be tuned independently.
  */
 export class PoseService {
   private landmarker: PoseLandmarker | null = null

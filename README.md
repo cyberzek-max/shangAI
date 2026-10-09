@@ -5,15 +5,15 @@
 ## What it does
 
 - Tracks one person's 33-body-landmark pose in the browser with MediaPipe Pose Landmarker.
-- Supports guided exercise/gameplay, simulated demo mode, reference-pose clashes, and locally recorded movement ghosts.
+- Supports guided exercise gameplay, reference-pose clashes, and locally recorded movement ghosts.
 - Scores movement alignment and strikes, then produces a session report that can be inspected, downloaded as JSON, or copied as a prompt for an external AI assistant. No AI service is called by the app.
 - Offers live friend matches. WebRTC sends pose landmarks directly between browsers; a small HTTP signaling function exchanges connection setup messages through Upstash Redis.
 - Saves preferences, progress, achievements, and recent session history in browser local storage.
 
-## Try the demo
+## Get started
 
-1. Open the deployed app in a modern browser and choose **Demo (Simulated)** to explore without a camera.
-2. For camera play, choose a training mode, allow camera access, and follow the on-screen framing instructions. A well-lit space with your full body visible works best.
+1. Open the deployed app in a modern browser and allow camera access.
+2. Follow the on-screen framing instructions. A well-lit space with your full body visible works best.
 3. For live play, open **Live Multiplayer Arena** on two devices. One player hosts a room and shares the invite link; the other opens it and joins. Allow camera access on both devices. Keep both tabs open during the match.
 
 Camera sessions require HTTPS (or localhost). Live peer connectivity depends on the players' networks and browser WebRTC support; this deployment uses a public STUN server and does not include a TURN relay, so restrictive NAT/firewall combinations may prevent a direct connection.
@@ -69,7 +69,7 @@ src/clash/          Clash scoring, pose references, ghosts, and reports
 src/components/     App screens and interactive UI
 src/game/           Game rules, adaptive difficulty, and runtime
 src/net/            WebRTC peer transport and signaling client
-src/pose/           MediaPipe pose service and simulator
+src/pose/           MediaPipe pose service
 src/state/          App store and local persistence
 api/signal.ts       Vercel/Upstash HTTP signaling endpoint
 ```
@@ -82,4 +82,4 @@ npm run test:smoke
 npm run test:clash
 ```
 
-These checks cover TypeScript/production compilation and deterministic game/scoring behavior. Browser camera permissions, device performance, and two-network WebRTC connectivity still need a real-device demonstration.
+These checks cover TypeScript/production compilation and scoring behavior. Browser camera permissions, device performance, and two-network WebRTC connectivity still need hands-on device testing.

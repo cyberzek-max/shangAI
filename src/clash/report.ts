@@ -50,7 +50,6 @@ export class ClashRecorder {
     rival: string
     startedAt: number
     endedAt: number
-    simulated: boolean
   }): ClashReport {
     const defects = [...this.defects.entries()]
       .sort((a, b) => b[1] - a[1])
@@ -70,7 +69,6 @@ export class ClashRecorder {
       strikes: this.strikes,
       defects,
       samples: this.accN,
-      simulated: opts.simulated,
     }
   }
 }

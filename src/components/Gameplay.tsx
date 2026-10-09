@@ -55,11 +55,10 @@ function Bar({
 }
 
 export function Gameplay() {
-  const { settings, simulated, practice, setHud, go, setLastStats, progress, setProgress } =
+  const { settings, practice, setHud, go, setLastStats, progress, setProgress } =
     useAppStore(
       useShallow((s) => ({
         settings: s.settings,
-        simulated: s.simulated,
         practice: s.practice,
         setHud: s.setHud,
         go: s.go,
@@ -99,8 +98,7 @@ export function Gameplay() {
   useEffect(() => {
     sound.setEnabled(settings.sound)
     const runtime = new SessionRuntime({
-      video: simulated ? null : videoRef.current,
-      simulated,
+      video: videoRef.current,
       focusExercise: settings.selectedExercise,
       difficulty: settings.difficulty,
       maxIntensity: settings.maxIntensity,
@@ -269,8 +267,7 @@ export function Gameplay() {
       </div>
 
       {/* Picture-in-Picture Webcam (Top Right floating under HUD) */}
-      {!simulated && (
-        <div className="glass-surface absolute right-4 top-28 aspect-[4/3] w-36 overflow-hidden rounded-2xl shadow-glass sm:w-48 ring-1 ring-white/10">
+      <div className="glass-surface absolute right-4 top-28 aspect-[4/3] w-36 overflow-hidden rounded-2xl shadow-glass sm:w-48 ring-1 ring-white/10">
           <video
             ref={videoRef}
             playsInline
@@ -282,8 +279,7 @@ export function Gameplay() {
           <div className="glass-pill absolute bottom-1.5 left-1.5 rounded-md px-1.5 py-0.5 text-[9px] font-semibold text-white">
             {hud.detected ? 'Tracking Active' : 'Align Body'}
           </div>
-        </div>
-      )}
+      </div>
 
       {/* Live Form Guidance Capsule (Bottom Left) */}
       <div className="glass-surface pointer-events-none absolute bottom-4 left-4 w-72 rounded-2xl p-3.5 shadow-glass">

@@ -8,13 +8,12 @@ function fmtDuration(ms: number): string {
 }
 
 export function Results() {
-  const { lastStats, progress, go, setPractice, setSimulated } = useAppStore(
+  const { lastStats, progress, go, setPractice } = useAppStore(
     useShallow((s) => ({
       lastStats: s.lastStats,
       progress: s.progress,
       go: s.go,
       setPractice: s.setPractice,
-      setSimulated: s.setSimulated,
     })),
   )
 
@@ -47,7 +46,7 @@ export function Results() {
     ['Score', lastStats.score.toLocaleString()],
     ['XP earned', `+${lastStats.xpEarned}`],
     ['Peak combo', `x${lastStats.peakCombo}`],
-    ['Difficulty', lastStats.difficulty + (lastStats.simulated ? ' (simulated)' : '')],
+    ['Difficulty', lastStats.difficulty],
   ]
 
   return (
@@ -113,21 +112,13 @@ export function Results() {
           Switch Exercise
         </button>
         <button
-          onClick={() => {
-            setSimulated(false)
-            go('home')
-          }}
+          onClick={() => go('home')}
           className="apple-press glass-surface rounded-2xl px-5 py-3.5 text-xs font-semibold text-slate-300 hover:text-white"
         >
           Home Menu
         </button>
       </div>
 
-      {lastStats.simulated && (
-        <p className="mt-4 text-[11px] text-violet-300/80 font-medium">
-          ⚙ Simulated session · No camera input recorded.
-        </p>
-      )}
     </div>
   )
 }

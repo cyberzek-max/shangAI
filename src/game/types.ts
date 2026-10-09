@@ -73,7 +73,6 @@ export interface GameState {
   lastActionAt: number
   /** Which exercise each recent scoring rep came from, for the results screen. */
   repExerciseCounts: Partial<Record<ExerciseId, number>>
-  simulated: boolean
   passive: boolean
 }
 

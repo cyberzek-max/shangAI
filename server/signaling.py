@@ -15,7 +15,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 app = FastAPI(title="ZenClash signaling relay")
 
-# room -> set of connected sockets. Small demo scale; no persistence.
+# room -> set of connected sockets. Small rooms; no persistence.
 rooms: dict[str, set[WebSocket]] = {}
 room_offers: dict[str, str] = {}
 

@@ -652,15 +652,6 @@ export function RivalSelect() {
             Voice Coaching
           </label>
 
-          <label className="flex items-center gap-2 text-xs font-medium text-slate-300 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={clash.simUser}
-              onChange={(e) => setClash({ simUser: e.target.checked })}
-              className="rounded border-white/20 text-violet-500 focus:ring-0"
-            />
-            Simulated Input
-          </label>
         </div>
 
         <button

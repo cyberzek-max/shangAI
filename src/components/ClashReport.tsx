@@ -143,11 +143,6 @@ export function ClashReport() {
         </button>
       </div>
 
-      {r.simulated && (
-        <p className="mt-4 text-[11px] text-violet-300/80 font-medium">
-          ⚙ Simulated session · Synthetic motion data.
-        </p>
-      )}
     </div>
   )
 }

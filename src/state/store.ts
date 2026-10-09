@@ -25,8 +25,6 @@ export interface ClashConfig {
   voice: boolean
   relayUrl: string
   room: string
-  /** Demo: drive the user side with simulated landmarks (no webcam). */
-  simUser: boolean
 }
 
 export const DEFAULT_CLASH: ClashConfig = {
@@ -38,7 +36,6 @@ export const DEFAULT_CLASH: ClashConfig = {
   voice: true,
   relayUrl: '',
   room: 'dojo-1',
-  simUser: false,
 }
 
 export interface HudSnapshot {
@@ -102,14 +99,12 @@ interface AppStore {
   settings: Settings
   progress: ProgressState
   hud: HudSnapshot
-  simulated: boolean
   practice: boolean
   lastStats: SessionStats | null
   go: (screen: Screen) => void
   updateSettings: (patch: Partial<Settings>) => void
   setProgress: (p: ProgressState) => void
   setHud: (hud: HudSnapshot) => void
-  setSimulated: (v: boolean) => void
   setPractice: (v: boolean) => void
   setLastStats: (s: SessionStats | null) => void
   clash: ClashConfig
@@ -123,7 +118,6 @@ export const useAppStore = create<AppStore>((set) => ({
   settings: loadSettings(),
   progress: loadProgress(),
   hud: EMPTY_HUD,
-  simulated: false,
   practice: false,
   lastStats: null,
   go: (screen) => set({ screen }),
@@ -138,7 +132,6 @@ export const useAppStore = create<AppStore>((set) => ({
     set({ progress })
   },
   setHud: (hud) => set({ hud }),
-  setSimulated: (simulated) => set({ simulated }),
   setPractice: (practice) => set({ practice }),
   setLastStats: (lastStats) => set({ lastStats }),
   clash: { ...DEFAULT_CLASH },

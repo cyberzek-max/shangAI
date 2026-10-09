@@ -100,5 +100,4 @@ export interface ClashReport {
   strikes: Partial<Record<StrikeKind, number>>
   defects: string[]
   samples: number
-  simulated: boolean
 }
